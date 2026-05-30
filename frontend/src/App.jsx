@@ -268,7 +268,7 @@ export default function App() {
             fontSize: "20px", fontWeight: 800,
             background: "linear-gradient(90deg, #c4b5fd, #67e8f9)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-          }}>ResumeAI</span>
+          }}>CareerLens AI</span>
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <div style={{
@@ -343,10 +343,10 @@ export default function App() {
         gap: "1rem", position: "relative", zIndex: 1,
       }}>
         {[
-          { icon: "🎯", title: "Semantic ATS Score", desc: "AI understands meaning — 'ML' and 'Machine Learning' are treated as the same.", color: "167,139,250", delay: 0.1 },
-          { icon: "🔍", title: "Skill Gap Analysis", desc: "Instantly see which skills you have and what's missing for the role.", color: "34,197,94", delay: 0.2 },
-          { icon: "✨", title: "AI Rewrite Suggestions", desc: "Get your weak bullet points rewritten to be stronger and more impactful.", color: "96,165,250", delay: 0.3 },
-          { icon: "🗺️", title: "Learning Roadmap", desc: "Personalized 4-week plan to upskill for your target role with free resources.", color: "251,191,36", delay: 0.4 },
+          {  title: "Semantic ATS Score", desc: "AI understands meaning — 'ML' and 'Machine Learning' are treated as the same.", color: "167,139,250", delay: 0.1 },
+          {  title: "Skill Gap Analysis", desc: "Instantly see which skills you have and what's missing for the role.", color: "34,197,94", delay: 0.2 },
+          {  title: "AI Rewrite Suggestions", desc: "Get your weak bullet points rewritten to be stronger and more impactful.", color: "96,165,250", delay: 0.3 },
+          { title: "Learning Roadmap", desc: "Personalized 4-week plan to upskill for your target role with free resources.", color: "251,191,36", delay: 0.4 },
         ].map(f => <FeatureCard key={f.title} {...f} />)}
       </div>
 
@@ -516,7 +516,7 @@ export default function App() {
         {/* AI Suggestions */}
         {suggestions && (
           <div ref={suggestionsRef}>
-            <ResultCard title="✨ AI Rewrite Suggestions" color="#60a5fa" delay={0}>
+            <ResultCard title=" AI Rewrite Suggestions" color="#60a5fa" delay={0}>
               <TextOutput content={suggestions} />
             </ResultCard>
           </div>
@@ -525,7 +525,7 @@ export default function App() {
         {/* Learning Roadmap */}
         {roadmap && (
           <div ref={roadmapRef}>
-            <ResultCard title="🗺️ Personalized Learning Roadmap" color="#f59e0b" delay={0}>
+            <ResultCard title=" Personalized Learning Roadmap" color="#f59e0b" delay={0}>
               <TextOutput content={roadmap} />
             </ResultCard>
           </div>
@@ -534,7 +534,7 @@ export default function App() {
         {/* Cover Letter */}
         {coverLetter && (
           <div ref={coverRef}>
-            <ResultCard title="📝 Generated Cover Letter" color="#10b981" delay={0}>
+            <ResultCard title=" Generated Cover Letter" color="#10b981" delay={0}>
               <TextOutput content={coverLetter} />
               <button onClick={() => copyToClipboard(coverLetter)}
                 style={{
