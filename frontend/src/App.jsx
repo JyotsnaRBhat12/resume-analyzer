@@ -46,7 +46,6 @@ function AuroraBg() {
         ctx.fill()
       })
 
-      // Star field
       if (!AuroraBg.stars) {
         AuroraBg.stars = Array.from({ length: 120 }, () => ({
           x: Math.random(), y: Math.random(),
@@ -64,7 +63,6 @@ function AuroraBg() {
         ctx.fill()
       })
 
-      // Grid lines
       ctx.strokeStyle = "rgba(255,255,255,0.025)"
       ctx.lineWidth = 1
       const gridSize = 60
@@ -131,7 +129,10 @@ function ResultCard({ title, color, children, delay = 0 }) {
       backdropFilter: "blur(20px)", marginTop: "1.5rem",
       animation: `fadeUp 0.5s ease ${delay}s both`,
     }}>
-      <div style={{ fontSize: "12px", fontWeight: 800, color: color || "#a78bfa", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "1.2rem" }}>{title}</div>
+      <div style={{
+        fontSize: "20px", fontWeight: 800,
+        color: color || "#a78bfa", marginBottom: "1.2rem"
+      }}>{title}</div>
       {children}
     </div>
   )
@@ -243,7 +244,7 @@ export default function App() {
       <style>{`
         @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
         ::placeholder { color: rgba(255,255,255,0.25); }
         * { box-sizing: border-box; }
       `}</style>
@@ -261,45 +262,31 @@ export default function App() {
           <div style={{
             width: "32px", height: "32px", borderRadius: "8px",
             background: "linear-gradient(135deg, #6333ff, #00b4ff)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "16px",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px",
           }}>⚡</div>
           <span style={{
             fontSize: "20px", fontWeight: 800,
             background: "linear-gradient(90deg, #c4b5fd, #67e8f9)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-          }}>CareerLens AI</span>
+          }}>ResumeAI</span>
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          <div style={{
-            fontSize: "12px", background: "rgba(99,51,255,0.15)",
-            color: "#a78bfa", padding: "5px 14px", borderRadius: "20px",
-            border: "1px solid rgba(99,51,255,0.3)",
-          }}>Semantic AI</div>
-          <div style={{
-            fontSize: "12px", background: "rgba(0,180,255,0.1)",
-            color: "#67e8f9", padding: "5px 14px", borderRadius: "20px",
-            border: "1px solid rgba(0,180,255,0.2)",
-          }}>Groq LLaMA</div>
+          <div style={{ fontSize: "12px", background: "rgba(99,51,255,0.15)", color: "#a78bfa", padding: "5px 14px", borderRadius: "20px", border: "1px solid rgba(99,51,255,0.3)" }}>Semantic AI</div>
+          <div style={{ fontSize: "12px", background: "rgba(0,180,255,0.1)", color: "#67e8f9", padding: "5px 14px", borderRadius: "20px", border: "1px solid rgba(0,180,255,0.2)" }}>Groq LLaMA</div>
         </div>
       </nav>
 
       {/* ── Hero ── */}
       <div style={{ textAlign: "center", padding: "clamp(3rem,8vw,6rem) 5% 1rem", position: "relative", zIndex: 1 }}>
         <div style={{
-          display: "inline-block", fontSize: "12px", fontWeight: 700,
-          color: "#a78bfa", background: "rgba(99,51,255,0.15)",
-          padding: "6px 16px", borderRadius: "20px",
-          border: "1px solid rgba(99,51,255,0.3)",
-          marginBottom: "1.5rem", letterSpacing: "0.1em", textTransform: "uppercase",
+          display: "inline-block", fontSize: "12px", fontWeight: 700, color: "#a78bfa",
+          background: "rgba(99,51,255,0.15)", padding: "6px 16px", borderRadius: "20px",
+          border: "1px solid rgba(99,51,255,0.3)", marginBottom: "1.5rem",
+          letterSpacing: "0.1em", textTransform: "uppercase",
           animation: "fadeUp 0.5s ease 0.1s both",
         }}>AI-Powered Resume Analysis</div>
 
-        <h1 style={{
-          fontSize: "clamp(32px, 7vw, 68px)", fontWeight: 900,
-          margin: "0 0 1.5rem", lineHeight: 1.1,
-          animation: "fadeUp 0.5s ease 0.2s both",
-        }}>
+        <h1 style={{ fontSize: "clamp(32px, 7vw, 68px)", fontWeight: 900, margin: "0 0 1.5rem", lineHeight: 1.1, animation: "fadeUp 0.5s ease 0.2s both" }}>
           <span style={{ background: "linear-gradient(135deg, #fff 30%, #c4b5fd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             Land Your Dream Job
           </span>
@@ -323,8 +310,7 @@ export default function App() {
           style={{
             padding: "1rem 2.5rem", fontSize: "16px", fontWeight: 700,
             borderRadius: "14px", border: "none", cursor: "pointer",
-            background: "linear-gradient(135deg, #6333ff, #00b4ff)",
-            color: "#fff", marginBottom: "1rem",
+            background: "linear-gradient(135deg, #6333ff, #00b4ff)", color: "#fff",
             boxShadow: "0 8px 32px rgba(99,51,255,0.4)",
             animation: "fadeUp 0.5s ease 0.4s both",
             transition: "transform 0.2s, box-shadow 0.2s",
@@ -343,10 +329,10 @@ export default function App() {
         gap: "1rem", position: "relative", zIndex: 1,
       }}>
         {[
-          {  title: "Semantic ATS Score", desc: "AI understands meaning — 'ML' and 'Machine Learning' are treated as the same.", color: "167,139,250", delay: 0.1 },
-          {  title: "Skill Gap Analysis", desc: "Instantly see which skills you have and what's missing for the role.", color: "34,197,94", delay: 0.2 },
-          {  title: "AI Rewrite Suggestions", desc: "Get your weak bullet points rewritten to be stronger and more impactful.", color: "96,165,250", delay: 0.3 },
-          { title: "Learning Roadmap", desc: "Personalized 4-week plan to upskill for your target role with free resources.", color: "251,191,36", delay: 0.4 },
+          { icon: "🎯", title: "Semantic ATS Score", desc: "AI understands meaning — 'ML' and 'Machine Learning' are treated as the same.", color: "167,139,250", delay: 0.1 },
+          { icon: "🔍", title: "Skill Gap Analysis", desc: "Instantly see which skills you have and what's missing for the role.", color: "34,197,94", delay: 0.2 },
+          { icon: "✨", title: "AI Rewrite Suggestions", desc: "Get your weak bullet points rewritten to be stronger and more impactful.", color: "96,165,250", delay: 0.3 },
+          { icon: "🗺️", title: "Learning Roadmap", desc: "Personalized 4-week plan to upskill for your target role with free resources.", color: "251,191,36", delay: 0.4 },
         ].map(f => <FeatureCard key={f.title} {...f} />)}
       </div>
 
@@ -356,7 +342,7 @@ export default function App() {
       </div>
 
       {/* ── Upload Section ── */}
-      <div ref={uploadRef} style={{ width: "90%", maxWidth: "960px", margin: "0 auto", padding: "0 0 5rem", position: "relative", zIndex: 1 }}>
+      <div ref={uploadRef} style={{ width: "90%", maxWidth: "960px", margin: "0 auto", padding: "0 0 3rem", position: "relative", zIndex: 1 }}>
 
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <h2 style={{ fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 800, margin: "0 0 0.5rem", background: "linear-gradient(90deg, #fff, #c4b5fd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
@@ -367,8 +353,6 @@ export default function App() {
 
         {/* Upload + JD */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.2rem", marginBottom: "1.2rem" }}>
-
-          {/* Upload Card */}
           <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "24px", padding: "1.8rem", backdropFilter: "blur(20px)" }}>
             <div style={{ fontSize: "12px", fontWeight: 800, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "14px" }}>📄 Resume PDF</div>
             <div
@@ -396,7 +380,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* JD Card */}
           <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "24px", padding: "1.8rem", backdropFilter: "blur(20px)" }}>
             <div style={{ fontSize: "12px", fontWeight: 800, color: "#67e8f9", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "14px" }}>📋 Job Description</div>
             <textarea rows={7} value={jd} onChange={(e) => setJd(e.target.value)}
@@ -418,7 +401,6 @@ export default function App() {
             color: (!file || !jd || loading) ? "rgba(255,255,255,0.3)" : "#fff",
             transition: "all 0.3s", marginBottom: "1.2rem",
             boxShadow: (!file || !jd || loading) ? "none" : "0 8px 32px rgba(99,51,255,0.35)",
-            letterSpacing: "0.02em",
           }}>
           {loading
             ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
@@ -428,8 +410,6 @@ export default function App() {
             : "🔍 Analyze My Resume"
           }
         </button>
-
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
         {error && (
           <div style={{ color: "#f87171", background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.2)", borderRadius: "14px", padding: "1rem 1.2rem", marginTop: "1rem", fontSize: "15px" }}>
@@ -450,7 +430,6 @@ export default function App() {
                 </p>
               )}
 
-              {/* Stat Cards */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
                 {[
                   { label: "Total Skills", value: result.total_jd_keywords, color: "167,139,250" },
@@ -464,7 +443,6 @@ export default function App() {
                 ))}
               </div>
 
-              {/* Collapsible Skills */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}>
                 {[
                   { title: "✅ Matched Skills", keys: result.matched_keywords, color: "34,197,94", open: showMatched, toggle: () => setShowMatched(v => !v) },
@@ -503,7 +481,7 @@ export default function App() {
                     borderRadius: "14px", border: "none", cursor: btn.loading ? "wait" : "pointer",
                     background: btn.loading ? "rgba(255,255,255,0.06)" : `linear-gradient(135deg, ${btn.from}, ${btn.to})`,
                     color: btn.loading ? "rgba(255,255,255,0.3)" : "#fff", transition: "all 0.2s",
-                    boxShadow: btn.loading ? "none" : `0 4px 20px rgba(0,0,0,0.3)`,
+                    boxShadow: btn.loading ? "none" : "0 4px 20px rgba(0,0,0,0.3)",
                   }}
                   onMouseEnter={e => { if (!btn.loading) e.currentTarget.style.transform = "translateY(-2px)" }}
                   onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)" }}
@@ -516,7 +494,7 @@ export default function App() {
         {/* AI Suggestions */}
         {suggestions && (
           <div ref={suggestionsRef}>
-            <ResultCard title=" AI Rewrite Suggestions" color="#60a5fa" delay={0}>
+            <ResultCard title="✨ AI Rewrite Suggestions" color="#60a5fa">
               <TextOutput content={suggestions} />
             </ResultCard>
           </div>
@@ -525,7 +503,7 @@ export default function App() {
         {/* Learning Roadmap */}
         {roadmap && (
           <div ref={roadmapRef}>
-            <ResultCard title=" Personalized Learning Roadmap" color="#f59e0b" delay={0}>
+            <ResultCard title="🗺️ Personalized Learning Roadmap" color="#f59e0b">
               <TextOutput content={roadmap} />
             </ResultCard>
           </div>
@@ -534,7 +512,7 @@ export default function App() {
         {/* Cover Letter */}
         {coverLetter && (
           <div ref={coverRef}>
-            <ResultCard title=" Generated Cover Letter" color="#10b981" delay={0}>
+            <ResultCard title="📝 Generated Cover Letter" color="#10b981">
               <TextOutput content={coverLetter} />
               <button onClick={() => copyToClipboard(coverLetter)}
                 style={{
@@ -545,6 +523,17 @@ export default function App() {
             </ResultCard>
           </div>
         )}
+      </div>
+
+      {/* ── Footer ── */}
+      <div style={{
+        textAlign: "center", padding: "2rem",
+        borderTop: "1px solid rgba(255,255,255,0.06)",
+        position: "relative", zIndex: 1,
+      }}>
+        <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.25)", margin: 0 }}>
+          © 2026 <span style={{ color: "#a78bfa", fontWeight: 600 }}>Jyotsna R Bhat</span> — All Rights Reserved.
+        </p>
       </div>
 
       {/* Toast */}
