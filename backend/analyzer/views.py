@@ -3,16 +3,23 @@ import re
 import os
 import json
 from groq import Groq
+from django_ratelimit.decorators import ratelimit
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 
+MAX_FILE_SIZE_MB = 5
+MAX_JD_CHARS = 5000
+
 def extract_pdf_text(file):
-    pdf = fitz.open(stream=file.read(), filetype="pdf")
-    text = ""
-    for page in pdf:
-        text += page.get_text()
-    return text
+    try:
+        pdf = fitz.open(stream=file.read(), filetype="pdf")
+        text = ""
+        for page in pdf:
+            text += page.get_text()
+        return text.strip()
+    except Exception:
+        return ""
 
 def run_groq(prompt, max_tokens=1500):
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -23,6 +30,28 @@ def run_groq(prompt, max_tokens=1500):
     )
     return response.choices[0].message.content
 
+def validate_inputs(request, check_file=True):
+    if check_file:
+        file = request.FILES.get('resume')
+        if not file:
+            return None, None, Response({"error": "No file uploaded. Please upload a PDF resume."}, status=400)
+        if not file.name.endswith('.pdf'):
+            return None, None, Response({"error": "Invalid file type. Please upload a PDF file only."}, status=400)
+        if file.size > MAX_FILE_SIZE_MB * 1024 * 1024:
+            return None, None, Response({"error": f"File too large. Please upload a PDF under {MAX_FILE_SIZE_MB}MB."}, status=400)
+    else:
+        file = None
+
+    jd = request.data.get('job_description', '').strip()
+    if not jd:
+        return None, None, Response({"error": "Job description is empty. Please paste the job description."}, status=400)
+    if len(jd) < 50:
+        return None, None, Response({"error": "Job description is too short. Please paste the full job description."}, status=400)
+    if len(jd) > MAX_JD_CHARS:
+        jd = jd[:MAX_JD_CHARS]
+
+    return file, jd, None
+
 @api_view(['GET'])
 def hello(request):
     return Response({"message": "Backend is working!"})
@@ -32,24 +61,31 @@ def hello(request):
 def upload_resume(request):
     file = request.FILES.get('resume')
     if not file:
-        return Response({"error": "No file uploaded"}, status=400)
+        return Response({"error": "No file uploaded."}, status=400)
     if not file.name.endswith('.pdf'):
-        return Response({"error": "Please upload a PDF file"}, status=400)
+        return Response({"error": "Please upload a PDF file."}, status=400)
+    if file.size > MAX_FILE_SIZE_MB * 1024 * 1024:
+        return Response({"error": f"File too large. Max {MAX_FILE_SIZE_MB}MB."}, status=400)
     text = extract_pdf_text(file)
+    if not text:
+        return Response({"error": "Could not extract text from this PDF. Make sure it is not a scanned image PDF."}, status=400)
     return Response({"text": text})
 
+@ratelimit(key='ip', rate='10/m', block=True)
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def analyze_resume(request):
-    file = request.FILES.get('resume')
-    jd = request.data.get('job_description', '')
-
-    if not file:
-        return Response({"error": "No file uploaded"}, status=400)
-    if not jd:
-        return Response({"error": "No job description provided"}, status=400)
+    file, jd, err = validate_inputs(request)
+    if err:
+        return err
 
     resume_text = extract_pdf_text(file)
+
+    if not resume_text:
+        return Response({"error": "Could not read your PDF. Make sure it is a text-based PDF, not a scanned image."}, status=400)
+
+    if len(resume_text) < 100:
+        return Response({"error": "Your resume appears to be empty or too short. Please check your PDF."}, status=400)
 
     prompt = f"""
 You are an expert ATS (Applicant Tracking System) and resume analyst.
@@ -58,7 +94,7 @@ Semantically compare this resume against the job description. Understand meaning
 For example: "ML" and "Machine Learning" are the same. "Built APIs" matches "REST API development".
 
 Resume:
-{resume_text}
+{resume_text[:3000]}
 
 Job Description:
 {jd}
@@ -72,17 +108,18 @@ Respond ONLY with a valid JSON object, no explanation, no markdown, no extra tex
 }}
 """
 
-    raw = run_groq(prompt, max_tokens=1500)
-
     try:
+        raw = run_groq(prompt, max_tokens=1500)
         clean = raw.strip()
         if "```" in clean:
             clean = clean.split("```")[1]
             if clean.startswith("json"):
                 clean = clean[4:]
         data = json.loads(clean.strip())
+    except json.JSONDecodeError:
+        return Response({"error": "AI response was unexpected. Please try again."}, status=500)
     except Exception:
-        return Response({"error": "AI response parsing failed. Try again."}, status=500)
+        return Response({"error": "AI service is temporarily unavailable. Please try again in a moment."}, status=503)
 
     return Response({
         "ats_score": data.get("ats_score", 0),
@@ -92,18 +129,17 @@ Respond ONLY with a valid JSON object, no explanation, no markdown, no extra tex
         "match_summary": data.get("match_summary", "")
     })
 
+@ratelimit(key='ip', rate='5/m', block=True)
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def ai_suggestions(request):
-    file = request.FILES.get('resume')
-    jd = request.data.get('job_description', '')
-
-    if not file:
-        return Response({"error": "No file uploaded"}, status=400)
-    if not jd:
-        return Response({"error": "No job description provided"}, status=400)
+    file, jd, err = validate_inputs(request)
+    if err:
+        return err
 
     resume_text = extract_pdf_text(file)
+    if not resume_text:
+        return Response({"error": "Could not read your PDF. Please check your file."}, status=400)
 
     prompt = f"""
 You are an expert resume coach.
@@ -114,7 +150,7 @@ A student has uploaded their resume and a job description. Your job is to:
 3. Give one overall tip to improve the resume for this specific role
 
 Resume:
-{resume_text}
+{resume_text[:3000]}
 
 Job Description:
 {jd}
@@ -142,29 +178,31 @@ IMPROVED BULLET 3:
 OVERALL TIP:
 <one actionable tip>
 """
-    return Response({"suggestions": run_groq(prompt)})
+    try:
+        return Response({"suggestions": run_groq(prompt)})
+    except Exception:
+        return Response({"error": "AI service is temporarily unavailable. Please try again in a moment."}, status=503)
 
+@ratelimit(key='ip', rate='5/m', block=True)
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def learning_roadmap(request):
-    file = request.FILES.get('resume')
-    jd = request.data.get('job_description', '')
-
-    if not file:
-        return Response({"error": "No file uploaded"}, status=400)
-    if not jd:
-        return Response({"error": "No job description provided"}, status=400)
+    file, jd, err = validate_inputs(request)
+    if err:
+        return err
 
     resume_text = extract_pdf_text(file)
+    if not resume_text:
+        return Response({"error": "Could not read your PDF. Please check your file."}, status=400)
 
     prompt = f"""
 You are an expert tech career coach.
 
 Based on this resume and job description, create a personalized learning roadmap.
-Focus on what's missing or weak in the resume compared to the job requirements.
+Focus on what is missing or weak in the resume compared to the job requirements.
 
 Resume:
-{resume_text}
+{resume_text[:3000]}
 
 Job Description:
 {jd}
@@ -195,20 +233,22 @@ FREE RESOURCES:
 QUICK TIP:
 <one motivational and practical tip for this specific student>
 """
-    return Response({"roadmap": run_groq(prompt)})
+    try:
+        return Response({"roadmap": run_groq(prompt)})
+    except Exception:
+        return Response({"error": "AI service is temporarily unavailable. Please try again in a moment."}, status=503)
 
+@ratelimit(key='ip', rate='5/m', block=True)
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def cover_letter(request):
-    file = request.FILES.get('resume')
-    jd = request.data.get('job_description', '')
-
-    if not file:
-        return Response({"error": "No file uploaded"}, status=400)
-    if not jd:
-        return Response({"error": "No job description provided"}, status=400)
+    file, jd, err = validate_inputs(request)
+    if err:
+        return err
 
     resume_text = extract_pdf_text(file)
+    if not resume_text:
+        return Response({"error": "Could not read your PDF. Please check your file."}, status=400)
 
     prompt = f"""
 You are an expert cover letter writer.
@@ -219,9 +259,12 @@ Keep it to 3 paragraphs. Do not use placeholders like [Your Name] or [Date].
 Start directly with "Dear Hiring Manager,"
 
 Resume:
-{resume_text}
+{resume_text[:3000]}
 
 Job Description:
 {jd}
 """
-    return Response({"cover_letter": run_groq(prompt)})
+    try:
+        return Response({"cover_letter": run_groq(prompt)})
+    except Exception:
+        return Response({"error": "AI service is temporarily unavailable. Please try again in a moment."}, status=503)
